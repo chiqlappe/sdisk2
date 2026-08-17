@@ -8,8 +8,8 @@ SDISK II LCD Firmware をベースに改造したものです。
 
 オリジナルの SDISK II については以下を参照してください。
 
-- 西田ラヂオ SDISK II
-  https://tulip-house.ddo.jp/digital/SDISK2/
+- 西田ラヂオ SDISK II LCD
+  [https://tulip-house.ddo.jp/digital/SDISK2LCD/index.html](https://tulip-house.ddo.jp/digital/SDISK2LCD/index.html)
 
 ## 概要
 
