@@ -1,5 +1,7 @@
 # SDISK II Modified Firmware
 
+![基板イメージ](https://github.com/chiqlappe/sdisk2/image/IMG_3473.JPG)
+
 Apple II 用 DISK II エミュレータ「SDISK II」の改造版ファームウェアです。
 
 このプログラムは、西田ラヂオ Koichi Nishida 氏による
