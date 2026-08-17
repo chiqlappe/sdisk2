@@ -1,8 +1,8 @@
 /*------------------------------------
 
-	SDISK II LCD Farmware (1 of 3)
-	
-	2010.11.11 by Koichi Nishida
+  SDISK II LCD Farmware (1 of 3)
+  
+  2010.11.11 by Koichi Nishida
 
 ------------------------------------*/
 
@@ -14,35 +14,35 @@ connect 27MHz (overclock...) crystal to the AVR.
 3.3V power.
 
 fuse setting :
-	LOW: 11011110
-	HIGH: default
+  LOW: 11011110
+  HIGH: default
 
 connection:
-	D0: DO (SD card)
-	D1: USART TX to the LCD unit
- 	D2: WRITE REQUEST (APPLE II disk IF, pull up with 10K ohm)
-	D3: EJECT switch (LOW if SD card is inserted)
-	D4: DI (SD card)
-	D5: CLK (SD card)
-	D6: yellow LED (through 330 ohm, on when HIGH)
-	D7: CS (SD card)
-	B0: PHASE-0 (APPLE II disk IF)
-	B1: PHASE-1 (APPLE II disk IF)
-	B2: PHASE-2 (APPLE II disk IF)
-	B3: PHASE-3 (APPLE II disk IF)
-	B4: red LED (through 330 ohm, on when HIGH)
-	B5: ENTER switch (LOW when pushed)
-	B6-B7: connect to the crystal
-	C0: DRIVE ENABLE (APPLE II disk IF)
-	C1: READ PULSE (APPLE II disk IF through 74HC125 3state)
-	C2: WRITE (APPLE II disk IF)
-	C3: WRITE PROTECT (APPLE II disk IF through 74HC125 3state)
-	C4: UP switch (LOW when pushed)
-	C5: DOWN switch (LOW when pushed)
-	C6: NC
-	
-	Note that the enable input of the 3state buffer 74HC125,
-	should be connected with DRIVE ENABLE.
+  D0: DO (SD card)
+  D1: USART TX to the LCD unit
+  D2: WRITE REQUEST (APPLE II disk IF, pull up with 10K ohm)
+  D3: EJECT switch (LOW if SD card is inserted)
+  D4: DI (SD card)
+  D5: CLK (SD card)
+  D6: yellow LED (through 330 ohm, on when HIGH)
+  D7: CS (SD card)
+  B0: PHASE-0 (APPLE II disk IF)
+  B1: PHASE-1 (APPLE II disk IF)
+  B2: PHASE-2 (APPLE II disk IF)
+  B3: PHASE-3 (APPLE II disk IF)
+  B4: red LED (through 330 ohm, on when HIGH)
+  B5: ENTER switch (LOW when pushed)
+  B6-B7: connect to the crystal
+  C0: DRIVE ENABLE (APPLE II disk IF)
+  C1: READ PULSE (APPLE II disk IF through 74HC125 3state)
+  C2: WRITE (APPLE II disk IF)
+  C3: WRITE PROTECT (APPLE II disk IF through 74HC125 3state)
+  C4: UP switch (LOW when pushed)
+  C5: DOWN switch (LOW when pushed)
+  C6: NC
+  
+  Note that the enable input of the 3state buffer 74HC125,
+  should be connected with DRIVE ENABLE.
 */
 
 /*
@@ -99,32 +99,32 @@ fuse setting :
 
 connection:
   B0: PHASE-0 (APPLE II disk IF)
-	B1: PHASE-1 (APPLE II disk IF)
-	B2: PHASE-2 (APPLE II disk IF)
-	B3: PHASE-3 (APPLE II disk IF)
-	B4: red LED (through 330 ohm, on when HIGH)
-	B5: ENTER switch (LOW when pushed)
-	B6-B7: connect to the crystal
+  B1: PHASE-1 (APPLE II disk IF)
+  B2: PHASE-2 (APPLE II disk IF)
+  B3: PHASE-3 (APPLE II disk IF)
+  B4: red LED (through 330 ohm, on when HIGH)
+  B5: ENTER switch (LOW when pushed)
+  B6-B7: connect to the crystal
 
   C0: DRIVE ENABLE (APPLE II disk IF)
-	C1: READ PULSE (APPLE II disk IF through 74HC125 3state)
-	C2: WRITE (APPLE II disk IF)
-	C3: WRITE PROTECT (APPLE II disk IF through 74HC125 3state)
-	C4: UP switch (LOW when pushed)
-	C5: DOWN switch (LOW when pushed)
-	C6: *CHANGED* RESET switch (LOW when pushed)
-	
-	D0: DO (SD card)
-	D1: USART TX to the LCD unit
- 	D2: WRITE REQUEST (APPLE II disk IF, pull up with 10K ohm) INT0
-	D3: EJECT switch (LOW if SD card is inserted)
-	D4: DI (SD card)
-	D5: CLK (SD card)
-	D6: yellow LED (through 330 ohm, on when HIGH)
-	D7: ~CS (SD card)
+  C1: READ PULSE (APPLE II disk IF through 74HC125 3state)
+  C2: WRITE (APPLE II disk IF)
+  C3: WRITE PROTECT (APPLE II disk IF through 74HC125 3state)
+  C4: UP switch (LOW when pushed)
+  C5: DOWN switch (LOW when pushed)
+  C6: *CHANGED* RESET switch (LOW when pushed)
+  
+  D0: DO (SD card)
+  D1: USART TX to the LCD unit
+  D2: WRITE REQUEST (APPLE II disk IF, pull up with 10K ohm) INT0
+  D3: EJECT switch (LOW if SD card is inserted)
+  D4: DI (SD card)
+  D5: CLK (SD card)
+  D6: yellow LED (through 330 ohm, on when HIGH)
+  D7: ~CS (SD card)
 
-	Note that the enable input of the 3state buffer 74LS125,
-	should be connected with DRIVE ENABLE.
+  Note that the enable input of the 3state buffer 74LS125,
+  should be connected with DRIVE ENABLE.
 */
 
 /*
@@ -323,15 +323,15 @@ void wait5(unsigned short time);
 
 // SD card information
 unsigned long bpbAddr, rootAddr;
-unsigned long fatAddr;					// the beginning of FAT
+unsigned long fatAddr;            // the beginning of FAT
 unsigned short fileFatTop;
-unsigned long userAddr;					// the beginning of user data
+unsigned long userAddr;           // the beginning of user data
 unsigned short fatNic[FAT_NIC_ELEMS];
 unsigned char prevFatNumDsk, prevFatNumNic;
 unsigned short nicEntryNo, dskEntryNo, btfEntryNo;
-unsigned short maxCluster;      // FAT探索用
+unsigned short maxCluster;        // FAT探索用
 
-unsigned char sectorsPerCluster;	// BPB+13 1クラスタあたりのセクタ数
+unsigned char sectorsPerCluster;  // BPB+13 1クラスタあたりのセクタ数
 unsigned short reservedSectors;   // BPB+14~15  予約セクタ数
 //unsigned char numFats;          // BPB+16     定数 NUM_FATS で代用する
 //unsigned short rootEntryCount;  // BPB+17~18  定数 ROOT_ENTRY_COUNT で代用する
@@ -341,15 +341,15 @@ unsigned char sectorsPerCluster2;
 
 
 // SDカードエラー
-volatile unsigned char sdError; // エラーコード格納用
+volatile unsigned char sdError;   // エラーコード格納用
 volatile unsigned char sdWriteError; // SD書き込みエラー発生フラグ
 
 
 // DISK II status
-unsigned char ph_track;	  // 0~139 物理トラック(1トラックを4分割したクォータートラック)の番号 140=35*4
+unsigned char ph_track;   // 0~139 物理トラック(1トラックを4分割したクォータートラック)の番号 140=35*4
 unsigned char readPulse;  // sub.S で使用
-unsigned short bitbyte;	  // sub.S で使用 0~(8*512-1) = 4095
-unsigned char sector;	    // sub.S で使用 0~15
+unsigned short bitbyte;   // sub.S で使用 0~(8*512-1) = 4095
+unsigned char sector;     // sub.S で使用 0~15
 unsigned char prepare;    // sub.S で使用 次のセクタ準備待ち状態なら 1 になる
 unsigned char mounted;    // NICファイルがマウントされたら 1 になる
 unsigned char magState;
@@ -358,8 +358,8 @@ unsigned char formatting;
 const unsigned char volume = 0xfe; // デフォルトのボリューム番号(254)
 
 // write data buffer
-unsigned char writeData[BUF_COUNT][BUF_SIZE]; // 汎用バッファ (4*350=1400バイト)
-unsigned char sectors[BUF_COUNT], tracks[BUF_COUNT]; // バッファに書き込まれているデータに対応するセクタ番号とトラック番号
+unsigned char writeData[BUF_COUNT][BUF_SIZE];         // 汎用バッファ (4*350=1400バイト)
+unsigned char sectors[BUF_COUNT], tracks[BUF_COUNT];  // バッファに書き込まれているデータに対応するセクタ番号とトラック番号
 unsigned char buffNum;
 unsigned char *writePtr;  // sub.S で使用
 
@@ -372,14 +372,14 @@ const uint8_t stepper_table[8] PROGMEM = {0b00000000, 0b11111111, 0b11111110, 0b
 // encode / decode table for a nib image
 // GCR変換テーブル
 const uint8_t encTable[] PROGMEM = {
-	0x96,0x97,0x9A,0x9B,0x9D,0x9E,0x9F,0xA6,
-	0xA7,0xAB,0xAC,0xAD,0xAE,0xAF,0xB2,0xB3,
-	0xB4,0xB5,0xB6,0xB7,0xB9,0xBA,0xBB,0xBC,
-	0xBD,0xBE,0xBF,0xCB,0xCD,0xCE,0xCF,0xD3,
-	0xD6,0xD7,0xD9,0xDA,0xDB,0xDC,0xDD,0xDE,
-	0xDF,0xE5,0xE6,0xE7,0xE9,0xEA,0xEB,0xEC,
-	0xED,0xEE,0xEF,0xF2,0xF3,0xF4,0xF5,0xF6,
-	0xF7,0xF9,0xFA,0xFB,0xFC,0xFD,0xFE,0xFF
+  0x96,0x97,0x9A,0x9B,0x9D,0x9E,0x9F,0xA6,
+  0xA7,0xAB,0xAC,0xAD,0xAE,0xAF,0xB2,0xB3,
+  0xB4,0xB5,0xB6,0xB7,0xB9,0xBA,0xBB,0xBC,
+  0xBD,0xBE,0xBF,0xCB,0xCD,0xCE,0xCF,0xD3,
+  0xD6,0xD7,0xD9,0xDA,0xDB,0xDC,0xDD,0xDE,
+  0xDF,0xE5,0xE6,0xE7,0xE9,0xEA,0xEB,0xEC,
+  0xED,0xEE,0xEF,0xF2,0xF3,0xF4,0xF5,0xF6,
+  0xF7,0xF9,0xFA,0xFB,0xFC,0xFD,0xFE,0xFF
 };
 
 // 論理セクタ番号(ソフトセクタ番号)を物理セクタ番号に変換するテーブル "2 descending skew"
@@ -454,8 +454,8 @@ void outCharUsart(unsigned char c)
  */
 void buffClear(void)
 {
-	unsigned char i;
-	unsigned short j;
+  unsigned char i;
+  unsigned short j;
   
   for (i = 0; i < BUF_COUNT; i++) {
     for (j = 0; j < BUF_SIZE; j++) {
@@ -481,7 +481,7 @@ void cancelRead(void)
       if (bit_is_set(PIND, 3)) return;
       PORTD = 0b00110000; // CLK=H
       PORTD = 0b00010000; // CLK=L
-		}
+    }
     bitbyte = 402 * 8;
   }
 }
@@ -494,15 +494,15 @@ void cancelRead(void)
  */
 void writeByteSlow(unsigned char c)
 {
-	unsigned char d;
+  unsigned char d;
   for (d = 0b10000000; d; d >>= 1) {
-		if (c & d) {
-			PORTD = 0b00010000; // DI=H, CLK=L, CS=L
-			wait5(WAIT);
-			PORTD = 0b00110000; // DI=H, CLK=H, CS=L
+    if (c & d) {
+      PORTD = 0b00010000; // DI=H, CLK=L, CS=L
+      wait5(WAIT);
+      PORTD = 0b00110000; // DI=H, CLK=H, CS=L
     } else {
       PORTD = 0b00000000; // DI=L, CLK=L, CS=L
-			wait5(WAIT);
+      wait5(WAIT);
       PORTD = 0b00100000; // DI=L, CLK=H, CS=L
     }
     wait5(WAIT);
@@ -521,12 +521,12 @@ void writeByteFast(unsigned char c)
   unsigned char d;
   for (d = 0b10000000; d; d >>= 1) {
     if (c & d) {
-			PORTD = 0b00010000; // DI=H, CLK=L, CS=L
+      PORTD = 0b00010000; // DI=H, CLK=L, CS=L
       PORTD = 0b00110000; // DI=H, CLK=H, CS=L
     } else {
-			PORTD = 0b00000000; // DI=L, CLK=L, CS=L
+      PORTD = 0b00000000; // DI=L, CLK=L, CS=L
       PORTD = 0b00100000; // DI=L, CLK=H, CS=L
-		}
+    }
   }
   PORTD = 0b00000000; // DI=L, CLK=L, CS=L
 }
@@ -539,15 +539,15 @@ void writeByteFast(unsigned char c)
 unsigned char readByteSlow(void)
 {
   unsigned char c = 0;
-	volatile unsigned char i;
+  volatile unsigned char i;
 
-	PORTD = 0b00010000; // DI=H, CLK=L, CS=L
+  PORTD = 0b00010000; // DI=H, CLK=L, CS=L
   wait5(WAIT);
   for (i = 0; i != 8; i++) {
-		PORTD = 0b00110000; // DI=H, CLK=H, CS=L
-		wait5(WAIT);
-		c = ((c << 1) | (PIND & 1));
-		PORTD = 0b00010000; // DI=H, CLK=L, CS=L
+    PORTD = 0b00110000; // DI=H, CLK=H, CS=L
+    wait5(WAIT);
+    c = ((c << 1) | (PIND & 1));
+    PORTD = 0b00010000; // DI=H, CLK=L, CS=L
     wait5(WAIT);
   }
   return c;
@@ -561,15 +561,15 @@ unsigned char readByteSlow(void)
 unsigned char readByteFast(void)
 {
   unsigned char c = 0;
-	volatile unsigned char i;
+  volatile unsigned char i;
 
-	PORTD = 0b00010000;	// DI=H, CLK=L
+  PORTD = 0b00010000; // DI=H, CLK=L
   for (i = 0; i != 8; i++) {
-		PORTD = 0b00110000; // DI=H, CLK=H
+    PORTD = 0b00110000; // DI=H, CLK=H
     c = ((c << 1) | (PIND & 1));
-    PORTD = 0b00010000;	// DI=H, CLK=L
+    PORTD = 0b00010000; // DI=H, CLK=L
   }
-	return c;
+  return c;
 }
 
 
@@ -603,15 +603,15 @@ unsigned char waitFinish(void)
  */
 void cmd_(unsigned char cmd, unsigned long adr)
 {
-	writeByteSlow(0xff);                // ポーリング用データ
-	writeByteSlow(0x40 + cmd);          // Index部 bit7,6は0,1であること
-	writeByteSlow(adr >> 24);           // Argument1
-	writeByteSlow((adr >> 16) & 0xff);  // Argument2
-	writeByteSlow((adr >> 8) & 0xff);   // Argument3
-	writeByteSlow(adr & 0xff);          // Argument4
+  writeByteSlow(0xff);                // ポーリング用データ
+  writeByteSlow(0x40 + cmd);          // Index部 bit7,6は0,1であること
+  writeByteSlow(adr >> 24);           // Argument1
+  writeByteSlow((adr >> 16) & 0xff);  // Argument2
+  writeByteSlow((adr >> 8) & 0xff);   // Argument3
+  writeByteSlow(adr & 0xff);          // Argument4
   
   writeByteSlow(0x95); // 0x95はCMD0のCRC値。CMD0には有効なCRC値が必要だが、SPIモードに移行したら無視される。ただし省略はできない
-	writeByteSlow(0xff); // 送信するとレスポンスが送られてくるが無視している
+  writeByteSlow(0xff); // 送信するとレスポンスが送られてくるが無視している
 }
 
 /**
@@ -675,10 +675,10 @@ void cmd17Fast(unsigned long adr)
 {
   unsigned char ch;
 
-	cmdFast(17, adr);
+  cmdFast(17, adr);
   do {
-		ch = readByteFast();
-	} while (ch != 0xfe); // CMD17のデータトークン(0xfe)が返るまで待つ
+    ch = readByteFast();
+  } while (ch != 0xfe); // CMD17のデータトークン(0xfe)が返るまで待つ
 }
 
 
@@ -715,7 +715,7 @@ __attribute__((noinline, noclone))
 int findExt(const char *targExt, unsigned char *protectOut, char *targName, unsigned char withName)
 {
   unsigned short i, j;
-	unsigned short max_file = ROOT_ENTRY_COUNT;
+  unsigned short max_file = ROOT_ENTRY_COUNT;
   unsigned short max_time = 0, max_date = 0;
   unsigned short tm, dt;
   unsigned char name[DIR_BODY_SIZE];
@@ -779,7 +779,7 @@ __attribute__((noinline, noclone))
 void prepareFat(unsigned short entryNo, unsigned short *fat, unsigned short len, unsigned char fatNum, unsigned char fatElemNum)
 {
   unsigned short ft, i;
-	unsigned char fn;
+  unsigned char fn;
 
   if (bit_is_set(PIND, 3)) {
     return;
@@ -787,20 +787,20 @@ void prepareFat(unsigned short entryNo, unsigned short *fat, unsigned short len,
   
   // 先頭クラスタ番号を求める
   seekSD(rootAddr + entryNo * DIR_ENTRY_SIZE + DIR_1ST_CLST_OFST);
-	ft = readByteFast();
-	ft += (unsigned short)readByteFast() << 8; // 先頭クラスタ番号の下位16ビット
+  ft = readByteFast();
+  ft += (unsigned short)readByteFast() << 8; // 先頭クラスタ番号の下位16ビット
   discard(2);
   
   if (fatNum == 0) {
     fat[0] = ft;
   }
   
-	for (i = 0; i < len; i++) {
+  for (i = 0; i < len; i++) {
     fn = (i + 1) / fatElemNum; // fatElemNum={18(DSK), 35(NIC)}
     
     seekSD((unsigned long)fatAddr + (unsigned long)ft * FAT_ENTRY_SIZE); // createFile()にも同じ記述あり
     ft = readByteFast();
-		ft += (unsigned short)readByteFast() << 8; // ft = FATエントリの値(次のクラスタ番号)
+    ft += (unsigned short)readByteFast() << 8; // ft = FATエントリの値(次のクラスタ番号)
     discard(2);
     
     if (fn == fatNum) {
@@ -824,7 +824,7 @@ void prepareFat(unsigned short entryNo, unsigned short *fat, unsigned short len,
 void writeSD(unsigned long adr, unsigned char *data, unsigned short len)
 {
   unsigned int i;
-	unsigned char *buf = &writeData[0][0];
+  unsigned char *buf = &writeData[0][0];
 
   if (bit_is_set(PIND, 3)) {
     return;
@@ -849,8 +849,8 @@ void writeSD(unsigned long adr, unsigned char *data, unsigned short len)
 void duplicateFat(void)
 {
   unsigned short i, j;
-	unsigned long adr = fatAddr;
-	unsigned char *buf = &writeData[0][0];
+  unsigned long adr = fatAddr;
+  unsigned char *buf = &writeData[0][0];
 
   if (bit_is_set(PIND, 3)) {
     return;
@@ -875,9 +875,9 @@ void duplicateFat(void)
 void dsk2Nic(void)
 {
   unsigned char trk, logic_sector;
-	unsigned short i;
+  unsigned short i;
   unsigned char *dst = (&writeData[0][0] + SECTOR_SIZE); // NICファイル用バッファ dst[0~511]
-	unsigned short *fatDsk = (unsigned short *)(&writeData[0][0] + 1024);
+  unsigned short *fatDsk = (unsigned short *)(&writeData[0][0] + 1024);
   
   prevFatNumNic = prevFatNumDsk = 0xff;
   
@@ -886,49 +886,49 @@ void dsk2Nic(void)
     dst[i] = 0xff; // 0xffを22個セットする
   }
 
-	// シンクバイト (12)
+  // シンクバイト (12)
   dst[0x16] = 0x03;
-	dst[0x17] = 0xfc;
-	dst[0x18] = 0xff;
-	dst[0x19] = 0x3f;
-	dst[0x1a] = 0xcf;
-	dst[0x1b] = 0xf3;
-	dst[0x1c] = 0xfc;
-	dst[0x1d] = 0xff;
-	dst[0x1e] = 0x3f;
-	dst[0x1f] = 0xcf;
-	dst[0x20] = 0xf3;
-	dst[0x21] = 0xfc;
-	
-	// アドレス プロローグ (3)
-	dst[0x22] = 0xd5;
-	dst[0x23] = 0xaa;
-	dst[0x24] = GCR_ADRS_MARKER;
+  dst[0x17] = 0xfc;
+  dst[0x18] = 0xff;
+  dst[0x19] = 0x3f;
+  dst[0x1a] = 0xcf;
+  dst[0x1b] = 0xf3;
+  dst[0x1c] = 0xfc;
+  dst[0x1d] = 0xff;
+  dst[0x1e] = 0x3f;
+  dst[0x1f] = 0xcf;
+  dst[0x20] = 0xf3;
+  dst[0x21] = 0xfc;
+  
+  // アドレス プロローグ (3)
+  dst[0x22] = 0xd5;
+  dst[0x23] = 0xaa;
+  dst[0x24] = GCR_ADRS_MARKER;
   
   // dst[0x25 ~ 0x2c] アドレスフィールド (8) : volume (2), track (2), sector (2), checksum (2) 4-and-4エンコード
   
   // アドレス エピローグ (3)
   dst[0x2d] = 0xde;
-	dst[0x2e] = 0xaa;
-	dst[0x2f] = 0xeb;
-	
+  dst[0x2e] = 0xaa;
+  dst[0x2f] = 0xeb;
+  
   // Gap2 (5)
   for (i = 0x30; i < 0x35; i++) {
     dst[i] = 0xff;
   }
-	
-	// データ プロローグ (3)
-	dst[0x35] = 0xd5;
-	dst[0x36] = 0xaa;
-	dst[0x37] = GCR_DATA_MARKER;
+  
+  // データ プロローグ (3)
+  dst[0x35] = 0xd5;
+  dst[0x36] = 0xaa;
+  dst[0x37] = GCR_DATA_MARKER;
   
   // dst[0x38 ~ 0x18d] エンコード済みデータ (342) : 6-and-2エンコード
   // dst[0x18e] チェックサム (1) 
   
   // データ エピローグ (3)
   dst[0x18f] = 0xde;
-	dst[0x190] = 0xaa;
-	dst[0x191] = 0xeb;
+  dst[0x190] = 0xaa;
+  dst[0x191] = 0xeb;
   
   // Gap3 (14)
   for (i = 0x192; i < 0x1a0; i++) {
@@ -954,13 +954,13 @@ void dsk2Nic(void)
 
       if ((logic_sector & 1) == 0) { // = {0,2,4,..,14}
         unsigned short long_sector = trk * 8 + (logic_sector / 2);
-				unsigned short long_cluster = (long_sector >> sectorsPerCluster2);
-				unsigned char fatNum = long_cluster / FAT_DSK_ELEMS;
-				unsigned short ft;
+        unsigned short long_cluster = (long_sector >> sectorsPerCluster2);
+        unsigned char fatNum = long_cluster / FAT_DSK_ELEMS;
+        unsigned short ft;
 
-				if (fatNum != prevFatNumDsk) {
+        if (fatNum != prevFatNumDsk) {
           prevFatNumDsk = fatNum;
-					prepareFat(dskEntryNo, fatDsk, ((280 + sectorsPerCluster - 1) >> sectorsPerCluster2), fatNum, FAT_DSK_ELEMS);
+          prepareFat(dskEntryNo, fatDsk, ((280 + sectorsPerCluster - 1) >> sectorsPerCluster2), fatNum, FAT_DSK_ELEMS);
         }
         
         ft = fatDsk[long_cluster % FAT_DSK_ELEMS];
@@ -971,7 +971,7 @@ void dsk2Nic(void)
             return;
           }
           *(&writeData[0][0] + i) = readByteFast(); // 汎用バッファに512バイト読み込む
-				}
+        }
         discard(512);
         src = &writeData[0][0];
       } else { // logic_sector = {1,3,5,...,15}
@@ -982,54 +982,54 @@ void dsk2Nic(void)
         unsigned char c, x, ox = 0;
         
         // トラック番号やセクタ番号は 4-and-4エンコード
-				dst[0x25] = ((volume >> 1) | 0xaa); // ボリューム番号
-				dst[0x26] = (volume | 0xaa);
+        dst[0x25] = ((volume >> 1) | 0xaa); // ボリューム番号
+        dst[0x26] = (volume | 0xaa);
         
         dst[0x27] = ((trk >> 1) | 0xaa); // トラック番号
-				dst[0x28] = (trk | 0xaa);
+        dst[0x28] = (trk | 0xaa);
         
         dst[0x29] = ((ph_sector >> 1) | 0xaa); // セクタ番号
-				dst[0x2a] = (ph_sector | 0xaa);
+        dst[0x2a] = (ph_sector | 0xaa);
         
         c = (volume ^ trk ^ ph_sector); // アドレスフィールドのXORチェックサム
-				dst[0x2b] = ((c >> 1) | 0xaa);
-				dst[0x2c] = (c | 0xaa);
+        dst[0x2b] = ((c >> 1) | 0xaa);
+        dst[0x2c] = (c | 0xaa);
         
         // 各バイトの下位2bitを3バイト分まとめる(=256/3=85.33=86) dst[56~141]
         for (i = 0; i < GCR_LBIT_SIZE; i++) { // 86
           x = (pgm_read_byte_near(FlipBit1 + (src[i] & 3)) |
-						pgm_read_byte_near(FlipBit2 + (src[i + GCR_LBIT_SIZE] & 3)) |
-						((i <= 83) ? pgm_read_byte_near(FlipBit3 + (src[i + GCR_LBIT_SIZE*2] & 3)) : 0)); // 83+86+86=255
+            pgm_read_byte_near(FlipBit2 + (src[i + GCR_LBIT_SIZE] & 3)) |
+            ((i <= 83) ? pgm_read_byte_near(FlipBit3 + (src[i + GCR_LBIT_SIZE*2] & 3)) : 0)); // 83+86+86=255
           
           dst[i + 0x38] = pgm_read_byte_near(encTable + (x ^ ox)); // チェックサム用に直前の値とのXORを取る
           ox = x;
-				}
+        }
         
         // 各バイトの上位6bit(256) dst[142~397]
         for (i = 0; i < GCR_HBIT_SIZE; i++) { // 256
           x = (src[i] >> 2);
-					dst[i + 0x8e] = pgm_read_byte_near(encTable + (x ^ ox)); // チェックサム用に直前の値とのXORを取る
-					ox = x;
+          dst[i + 0x8e] = pgm_read_byte_near(encTable + (x ^ ox)); // チェックサム用に直前の値とのXORを取る
+          ox = x;
         }
         dst[0x18e] = pgm_read_byte_near(encTable + ox); // 連鎖XORチェックサム dst[398]
-			}
+      }
       
       {
-				unsigned short long_sector = (unsigned short)trk * DSK_SCTR_PER_TRK + ph_sector;
-				unsigned short long_cluster = (long_sector >> sectorsPerCluster2);
-				unsigned char fatNum = long_cluster / FAT_NIC_ELEMS;
-				unsigned short ft;
-			
-				if (fatNum != prevFatNumNic) {
+        unsigned short long_sector = (unsigned short)trk * DSK_SCTR_PER_TRK + ph_sector;
+        unsigned short long_cluster = (long_sector >> sectorsPerCluster2);
+        unsigned char fatNum = long_cluster / FAT_NIC_ELEMS;
+        unsigned short ft;
+      
+        if (fatNum != prevFatNumNic) {
           prevFatNumNic = fatNum;
-					prepareFat(nicEntryNo, fatNic, ((560 + sectorsPerCluster - 1) >> sectorsPerCluster2), fatNum, FAT_NIC_ELEMS);
+          prepareFat(nicEntryNo, fatNic, ((560 + sectorsPerCluster - 1) >> sectorsPerCluster2), fatNum, FAT_NIC_ELEMS);
         }
         
         ft = fatNic[long_cluster % FAT_NIC_ELEMS];
 
-				PORTD = 0b10000000; // CS=H
-				PORTD = 0b00000000; // CS=L
-		
+        PORTD = 0b10000000; // CS=H
+        PORTD = 0b00000000; // CS=L
+    
         sdError = SDERR_NONE; // CMD24実行前にエラー状態を初期化する
         
         // CMD24 シングルブロック書き込み
@@ -1046,7 +1046,7 @@ void dsk2Nic(void)
         }
         
         writeByteFast(0xff);
-				writeByteFast(0xfe);
+        writeByteFast(0xfe);
         
         for (i = 0; i < SECTOR_SIZE; i++) {
           if (bit_is_set(PIND, 3)) {
@@ -1055,12 +1055,12 @@ void dsk2Nic(void)
           writeByteFast(dst[i]);
         }
         finishWrite();
-				
-				PORTD = 0b10000000; // CS=H
-				PORTD = 0b00000000;	// CS=L
-			}
-		}
-	}
+        
+        PORTD = 0b10000000; // CS=H
+        PORTD = 0b00000000; // CS=L
+      }
+    }
+  }
   buffClear();
   PORTB &= ~(1 << PB4); // 赤LED消灯
 }
@@ -1079,7 +1079,7 @@ void dsk2Nic(void)
 unsigned short makeFileNameList(unsigned short *list, char *targExt)
 {
   unsigned short i, j, k, entryNum = 0;
-	char name1[DIR_BODY_SIZE], name2[DIR_BODY_SIZE]; // ファイル名ソート用
+  char name1[DIR_BODY_SIZE], name2[DIR_BODY_SIZE]; // ファイル名ソート用
   unsigned char entry[DIR_ENTRY_SIZE];
   
   for (i = 0; i < ROOT_ENTRY_COUNT; i++) {
@@ -1125,10 +1125,10 @@ unsigned short makeFileNameList(unsigned short *list, char *targExt)
 unsigned char chooseANicFile(void *tempBuff, unsigned char btfExists, char *filebase)
 {
   unsigned short *list = (unsigned short *)tempBuff; // void * からほかのオブジェクトポインタ型への変換は自動的に行われるためキャストは省略できる(AI)
-	unsigned short num = makeFileNameList(list, "NIC"); // listにNICファイルのリストを作成する
+  unsigned short num = makeFileNameList(list, "NIC"); // listにNICファイルのリストを作成する
   char name[DIR_BODY_SIZE]; // ファイル名本体
-	short cur = 0, prevCur = -1; // カーソル位置
-	unsigned long i;
+  short cur = 0, prevCur = -1; // カーソル位置
+  unsigned long i;
   
   if (num > 0) { // NICファイルが存在する場合
     
@@ -1215,7 +1215,7 @@ unsigned char chooseANicFile(void *tempBuff, unsigned char btfExists, char *file
       
       // カーソル移動があればファイル名表示を更新する
       if (prevCur != cur) {
-				prevCur = cur;
+        prevCur = cur;
         
         char inv;
         short ser, i;
@@ -1239,7 +1239,7 @@ unsigned char chooseANicFile(void *tempBuff, unsigned char btfExists, char *file
     }
     
     getSFN(list[cur], name);
-		memcpy(filebase, name, DIR_BODY_SIZE); // filebase に name をコピーする
+    memcpy(filebase, name, DIR_BODY_SIZE); // filebase に name をコピーする
     
     cls();
     locate(0, CENTER_Y, 1);
@@ -1260,26 +1260,26 @@ unsigned char chooseANicFile(void *tempBuff, unsigned char btfExists, char *file
 void init(void)
 {
   unsigned char ch;
-	unsigned char i;
-	char str[5];
+  unsigned char i;
+  char str[5];
   
   protect = 0;
-	mounted = 0;
+  mounted = 0;
   
   // SDカードをSPIモードに初期化する
   // DI,CSをHレベルにしてSCLKを74クロック以上入れるとコマンドを受け付ける準備ができる
-  PORTD = 0b10000000;	// CS=H
+  PORTD = 0b10000000; // CS=H
   
   for (i = 0; i != 200; i++) { // 200クロック送信
-		PORTD = 0b10110000; // CS=H, DI=H, CLK=H
-		wait5(WAIT);
-		PORTD = 0b10010000; // CS=H, DI=H, CLK=L
+    PORTD = 0b10110000; // CS=H, DI=H, CLK=H
     wait5(WAIT);
-	 }
+    PORTD = 0b10010000; // CS=H, DI=H, CLK=L
+    wait5(WAIT);
+   }
   
   // CSをLにしてCMD0でソフトウェアリセットをかけるとSPIモードに入る
   PORTD = 0b000000000; // CS=L
-	cmd_(0, 0);	// CMD0を受信したときカードはCS信号をサンプルし、Lowレベルの場合はSPIモードに入る
+  cmd_(0, 0); // CMD0を受信したときカードはCS信号をサンプルし、Lowレベルの場合はSPIモードに入る
   
   do {
     if (bit_is_set(PIND, 3)) {
@@ -1299,8 +1299,8 @@ void init(void)
     }
     
     PORTD = 0b00000000; // CS=L
-		cmd_(55, 0);	// CMD55
-		ch = getRespSlow(); // ch=R1レスポンス
+    cmd_(55, 0);
+    ch = getRespSlow(); // ch=R1レスポンス
 
     if (ch == 0xff) {
       return; // R1レスポンスが 0xff なら初期化を中止する
@@ -1323,7 +1323,7 @@ void init(void)
       return; // R1レスポンスが 0xff なら初期化を中止する
     }
     PORTD = 0b10000000; // CS=H
-	}
+  }
   
   // SD初期化が完了したら送受信はウェイトなし
   
@@ -1342,7 +1342,7 @@ void init(void)
     bpbAddr += (unsigned long)readByteFast() << 8;  // * 0x100;
     bpbAddr += (unsigned long)readByteFast() << 16; // * 0x10000;
     bpbAddr += (unsigned long)readByteFast() << 24; // * 0x1000000;
-		bpbAddr *= SECTOR_SIZE; // 第1パーティションの開始セクタ番号にセクタサイズを掛けてbpbAddrとする
+    bpbAddr *= SECTOR_SIZE; // 第1パーティションの開始セクタ番号にセクタサイズを掛けてbpbAddrとする
     discard(4);
   }
   
@@ -1351,8 +1351,8 @@ void init(void)
   }
   
   // BPBのパラメータとFAT開始アドレスを求める
-	{
-		volatile unsigned char k;
+  {
+    volatile unsigned char k;
     
     seekSD(bpbAddr + 13);
 
@@ -1366,7 +1366,7 @@ void init(void)
     }
   
     // BPB+14~15
-		reservedSectors = readByteFast();
+    reservedSectors = readByteFast();
     reservedSectors += (unsigned short)readByteFast() << 8;
     
     // BPB+16
@@ -1400,13 +1400,13 @@ void init(void)
     }
     
     // FAT領域はブートセクタやBPBを含む予約領域が終わるセクタから始まる
-		fatAddr  = bpbAddr  + (unsigned long)SECTOR_SIZE * reservedSectors;
+    fatAddr  = bpbAddr  + (unsigned long)SECTOR_SIZE * reservedSectors;
     rootAddr = fatAddr  + ((unsigned long)sectorsPerFat * NUM_FATS * SECTOR_SIZE);
     userAddr = rootAddr + (unsigned long)ROOT_ENTRY_COUNT * DIR_ENTRY_SIZE;
     
     // FAT探索用
     maxCluster = getMaxCluster(totalSectors, reservedSectors, sectorsPerFat, sectorsPerCluster);
-	}
+  }
 }
 
 
@@ -1424,9 +1424,9 @@ void prepareFiles(unsigned char choose)
   consoleFlash("Searching...");
   busy(1);
   
-	// BTFファイルを探す
-	btfEntryNo = findExt("BTF", 0, btfbase, 0); // "BTF"を拡張子に持つファイルが見つかったら、btfbaseにファイル名の本体を返す
-	btfExists = (btfEntryNo != ROOT_ENTRY_COUNT);
+  // BTFファイルを探す
+  btfEntryNo = findExt("BTF", 0, btfbase, 0); // "BTF"を拡張子に持つファイルが見つかったら、btfbaseにファイル名の本体を返す
+  btfExists = (btfEntryNo != ROOT_ENTRY_COUNT);
 
   // NICファイルリストからNICファイルを選択する
   // NICファイルが無ければ 0 、選択されたら 1 が返る。btfbaseには選択されたファイル名本体が入る
@@ -1441,7 +1441,7 @@ void prepareFiles(unsigned char choose)
   
   // NICファイルを探す
   // プロテクト状態を取得する
-	nicEntryNo = findExt("NIC", &protect, filebase, btfExists || choosen);
+  nicEntryNo = findExt("NIC", &protect, filebase, btfExists || choosen);
   
   // NICファイルが見つからなかった時
   if (nicEntryNo == ROOT_ENTRY_COUNT) {
@@ -1453,39 +1453,39 @@ void prepareFiles(unsigned char choose)
       nop(); // Ejectされるまで待つ
     }
     return;
-	}
+  }
   
-	// BTFファイルが無ければ作成する
+  // BTFファイルが無ければ作成する
   if (!btfExists) {
     createFile(filebase, "BTF", NULL, 0);
-		btfEntryNo = findExt("BTF", 0, filebase, 1);
-		btfExists = (btfEntryNo != ROOT_ENTRY_COUNT);
+    btfEntryNo = findExt("BTF", 0, filebase, 1);
+    btfExists = (btfEntryNo != ROOT_ENTRY_COUNT);
   }
   
   // BTFファイルのファイル名本体部分を書き換える
   if (btfExists && (choosen || (memcmp(filebase, btfbase, DIR_BODY_SIZE) != 0))) {
-		writeSD(rootAddr + btfEntryNo * DIR_ENTRY_SIZE, (unsigned char *)filebase, DIR_BODY_SIZE); // 既存のBTFファイルエントリのファイル名本体部分だけを変更する
-	}
+    writeSD(rootAddr + btfEntryNo * DIR_ENTRY_SIZE, (unsigned char *)filebase, DIR_BODY_SIZE); // 既存のBTFファイルエントリのファイル名本体部分だけを変更する
+  }
 
   // マウントされたNICファイル名を表示
   locate(0, CENTER_Y, 1);
   dispFileName(nicEntryNo);
   
-	prevFatNumNic = 0xff;
-	prevFatNumDsk = 0xff;
-	bitbyte = 0;
-	readPulse = 0;
-	magState = 0;
-	ph_track = 0;
-	sector = 0;
-	buffNum = 0;
-	formatting = 0;
-	writePtr = &(writeData[buffNum][0]);
+  prevFatNumNic = 0xff;
+  prevFatNumDsk = 0xff;
+  bitbyte = 0;
+  readPulse = 0;
+  magState = 0;
+  ph_track = 0;
+  sector = 0;
+  buffNum = 0;
+  formatting = 0;
+  writePtr = &(writeData[buffNum][0]);
   
   buffClear();
   
   mounted = 1; // NICファイルがマウントされた状態
-	prepare = 1;
+  prepare = 1;
 }
 
 
@@ -1497,7 +1497,7 @@ void check_eject(void)
   unsigned long i;
   static char ejected; // SDカードが取り外されていたら 1、挿入されたら 0 になる
   
-	if (bit_is_set(PIND, 3)) { // SDカードが取り外されている
+  if (bit_is_set(PIND, 3)) { // SDカードが取り外されている
     
     for (i = 0; i != 0x50000; i++) {
       if (bit_is_clear(PIND, 3)) {
@@ -1600,50 +1600,50 @@ void check_eject(void)
 int main(void)
 {
   static unsigned char oldStp = 0, stp; // ステッピングモーター入力
-	const unsigned short baud = (F_CPU / (16UL * USART_BAUD)) - 1;
+  const unsigned short baud = (F_CPU / (16UL * USART_BAUD)) - 1;
   unsigned char ofs;
 
   // GPIO設定
   // 0=入力,1=出力
   DDRB  = 0b00010000;
-	DDRC  = 0b00001010;
-	DDRD  = 0b11110010;
+  DDRC  = 0b00001010;
+  DDRD  = 0b11110010;
 
-	PORTB = 0b00000000;
-	PORTC = 0b00000010; // READパルス オン
-	PORTD = 0b00000000;
+  PORTB = 0b00000000;
+  PORTC = 0b00000010; // READパルス オン
+  PORTD = 0b00000000;
 
-	// USART設定
-	UBRR0H = (unsigned char)(baud >> 8); // シリアル通信の通信速度を設定するための上位8ビットレジスタ。UBRR0Lとペアで使用し合計16ビットで分周比を指定する
-	UBRR0L = (unsigned char)baud;
-	UCSR0B = _BV(TXEN0); // 送信を許可
-	UCSR0C = (1 << USBS0) | (3 << UCSZ00); // ストップビット長=2ビット, データビット長=8ビット
+  // USART設定
+  UBRR0H = (unsigned char)(baud >> 8); // シリアル通信の通信速度を設定するための上位8ビットレジスタ。UBRR0Lとペアで使用し合計16ビットで分周比を指定する
+  UBRR0L = (unsigned char)baud;
+  UCSR0B = _BV(TXEN0); // 送信を許可
+  UCSR0C = (1 << USBS0) | (3 << UCSZ00); // ストップビット長=2ビット, データビット長=8ビット
 
-	// タイマー割り込み
-	OCR0A = 0; // タイマーのカウント動作を停止
-	TCCR0A = 0; // タイマー0を「通常のカウントアップモード」にし、ピン出力機能（PWMなど）をすべて切断する
-	TCCR0B = 1; // クロック分周なし
+  // タイマー割り込み
+  OCR0A = 0; // タイマーのカウント動作を停止
+  TCCR0A = 0; // タイマー0を「通常のカウントアップモード」にし、ピン出力機能（PWMなど）をすべて切断する
+  TCCR0B = 1; // クロック分周なし
 
-	// INT0割り込み
-	EICRA = 0b00000010; // 「INT0（外部割り込み0）の立ち下がりエッジ」で割り込みを発生させる設定
+  // INT0割り込み
+  EICRA = 0b00000010; // 「INT0（外部割り込み0）の立ち下がりエッジ」で割り込みを発生させる設定
 
-	mounted = 0; // マウントされていない
-	prepare = 1;
+  mounted = 0; // マウントされていない
+  prepare = 1;
   
   sector = 0;
-	readPulse = 0;
-	protect = 0;
-	bitbyte = 0;
-	magState = 0;
-	ph_track = 0;
-	buffNum = 0;
-	formatting = 0;
-	writePtr = &(writeData[buffNum][0]);
+  readPulse = 0;
+  protect = 0;
+  bitbyte = 0;
+  magState = 0;
+  ph_track = 0;
+  buffNum = 0;
+  formatting = 0;
+  writePtr = &(writeData[buffNum][0]);
   
   sdWriteError = 0;
   sdError = SDERR_NONE;
   
-	while (1) {
+  while (1) {
     check_eject(); // SDカードの取り出しをチェックする
     
     // SD書き込みエラー処理
@@ -1688,18 +1688,18 @@ int main(void)
       }
       
       if (mounted && prepare) {
-				cli(); // 割り込みを止めてアセンブリ変数を設定する(prepare, sector, bitbyte)
+        cli(); // 割り込みを止めてアセンブリ変数を設定する(prepare, sector, bitbyte)
         sector = ((sector + 1) & 0xf); // sectorを次に進める sector={0~15}
         
         {
-					unsigned char trk = (ph_track >> 2); // クォータートラックの物理トラック番号を論理トラック番号に変換する(1/4)
-					unsigned short long_sector = (unsigned short)trk * DSK_SCTR_PER_TRK + sector; // トラック0からの通算セクタ番号
-					unsigned short long_cluster = (long_sector >> sectorsPerCluster2);
-					unsigned char fatNum = long_cluster / FAT_NIC_ELEMS;
-					unsigned short ft;
+          unsigned char trk = (ph_track >> 2); // クォータートラックの物理トラック番号を論理トラック番号に変換する(1/4)
+          unsigned short long_sector = (unsigned short)trk * DSK_SCTR_PER_TRK + sector; // トラック0からの通算セクタ番号
+          unsigned short long_cluster = (long_sector >> sectorsPerCluster2);
+          unsigned char fatNum = long_cluster / FAT_NIC_ELEMS;
+          unsigned short ft;
 
           if (fatNum != prevFatNumNic) { // fatNumが前回から変化したら次のFAT領域をメモリに読み込む
-						prevFatNumNic = fatNum;
+            prevFatNumNic = fatNum;
             prepareFat(nicEntryNo, fatNic, ((560 + sectorsPerCluster - 1) >> sectorsPerCluster2), fatNum, FAT_NIC_ELEMS);
           }
           
@@ -1734,8 +1734,8 @@ int main(void)
  */
 void writeBack(void)
 {
-	static unsigned char sec; // staticなのでプログラム開始時に 0 に初期化される
-	
+  static unsigned char sec; // staticなのでプログラム開始時に 0 に初期化される
+  
   if (bit_is_set(PIND,3)) {
     return;
   }
@@ -1746,34 +1746,34 @@ void writeBack(void)
   
   if (writeData[buffNum][2] == GCR_DATA_MARKER) {
     if (!formatting) { // formattingが 0 の時
-			sectors[buffNum] = sector;
-			tracks[buffNum]  = (ph_track >> 2); // 論理トラック番号は物理トラック番号の1/4
+      sectors[buffNum] = sector;
+      tracks[buffNum]  = (ph_track >> 2); // 論理トラック番号は物理トラック番号の1/4
       sector = ((((sector == 0xf) || (sector == 0xd)) ? (sector+2) : (sector+1)) & 0xf);
       
       if (buffNum == (BUF_COUNT - 1)) {
-				cancelRead();
-				writeBackSub();
+        cancelRead();
+        writeBackSub();
         prepare = 1;
       } else {
-				buffNum++;
+        buffNum++;
         writePtr = &(writeData[buffNum][0]);
       }
-		} else { // formattingが 1 の時
+    } else { // formattingが 1 の時
       sector = sec;
       formatting = 0;
       
-			if (sec == (DSK_SCTR_PER_TRK - 1)) {
-				cancelRead();
+      if (sec == (DSK_SCTR_PER_TRK - 1)) {
+        cancelRead();
         prepare = 1;
-			}
+      }
     }
   }
   
   // 上の処理でbuffNumが進んでいる場合があるため、新しい現在バッファのアドレスフィールドも確認する
   if (writeData[buffNum][2] == GCR_ADRS_MARKER) {
-		sec = (((writeData[buffNum][7] & 0x55) << 1) | (writeData[buffNum][8] & 0x55)); // セクタ番号を更新する
+    sec = (((writeData[buffNum][7] & 0x55) << 1) | (writeData[buffNum][8] & 0x55)); // セクタ番号を更新する
     formatting = 1;
-	}
+  }
 }
 
 /**
@@ -1816,11 +1816,11 @@ void writeBackSub(void)
 void writeBackSub2(unsigned char bn, unsigned char sc, unsigned char track)
 {
   unsigned char c;
-	unsigned short i;
-	unsigned short long_sector = (unsigned short)track * DSK_SCTR_PER_TRK + sc;
-	unsigned short long_cluster = (long_sector >> sectorsPerCluster2);
-	unsigned char fatNum = long_cluster / FAT_NIC_ELEMS;
-	unsigned short ft;
+  unsigned short i;
+  unsigned short long_sector = (unsigned short)track * DSK_SCTR_PER_TRK + sc;
+  unsigned short long_cluster = (long_sector >> sectorsPerCluster2);
+  unsigned char fatNum = long_cluster / FAT_NIC_ELEMS;
+  unsigned short ft;
 
   if (bit_is_set(PIND, 3)) {
     return;
@@ -1828,12 +1828,12 @@ void writeBackSub2(unsigned char bn, unsigned char sc, unsigned char track)
   
   if (fatNum != prevFatNumNic) {
     prevFatNumNic = fatNum;
-		prepareFat(nicEntryNo, fatNic, ((560 + sectorsPerCluster - 1) >> sectorsPerCluster2), fatNum, FAT_NIC_ELEMS);
+    prepareFat(nicEntryNo, fatNic, ((560 + sectorsPerCluster - 1) >> sectorsPerCluster2), fatNum, FAT_NIC_ELEMS);
   }
   
-	PORTD = 0b10000000; // CS=H
-	PORTD = 0b00000000; // CS=L
-	
+  PORTD = 0b10000000; // CS=H
+  PORTD = 0b00000000; // CS=L
+  
   ft = fatNic[long_cluster % FAT_NIC_ELEMS];
   sdError = SDERR_NONE;
   
@@ -1850,56 +1850,56 @@ void writeBackSub2(unsigned char bn, unsigned char sc, unsigned char track)
   }
   
   writeByteFast(0xff);
-	writeByteFast(0xfe);
+  writeByteFast(0xfe);
   
   for (i = 0; i < 22; i++) { // 0xff を22回書き込む
     writeByteFast(0xff);
   }
   
   // sync header 12
-	writeByteFast(0x03);
-	writeByteFast(0xfc);
-	writeByteFast(0xff);
-	writeByteFast(0x3f);
-	writeByteFast(0xcf);
-	writeByteFast(0xf3);
-	writeByteFast(0xfc);
-	writeByteFast(0xff);
-	writeByteFast(0x3f);
-	writeByteFast(0xcf);
-	writeByteFast(0xf3);
-	writeByteFast(0xfc);
+  writeByteFast(0x03);
+  writeByteFast(0xfc);
+  writeByteFast(0xff);
+  writeByteFast(0x3f);
+  writeByteFast(0xcf);
+  writeByteFast(0xf3);
+  writeByteFast(0xfc);
+  writeByteFast(0xff);
+  writeByteFast(0x3f);
+  writeByteFast(0xcf);
+  writeByteFast(0xf3);
+  writeByteFast(0xfc);
 
-	// address header
-	writeByteFast(0xd5); // address prolog (0xd5 0xaa 0x96)
-	writeByteFast(0xAA);
-	writeByteFast(0x96);
+  // address header
+  writeByteFast(0xd5); // address prolog (0xd5 0xaa 0x96)
+  writeByteFast(0xAA);
+  writeByteFast(0x96);
   
   writeByteFast((volume>>1)|0xaa); // 4x4enc disk volume number
-	writeByteFast(volume|0xaa);
+  writeByteFast(volume|0xaa);
   
   writeByteFast((track>>1)|0xaa); // 4x4enc track number
-	writeByteFast(track|0xaa);
+  writeByteFast(track|0xaa);
   
   writeByteFast((sc>>1)|0xaa); // 4x4enc sector number
-	writeByteFast(sc|0xaa);
+  writeByteFast(sc|0xaa);
   
-  c = (volume^track^sc);  // 4x4enc address prolog checksum
-	writeByteFast((c>>1)|0xaa);
-	writeByteFast(c|0xaa);
+  c = (volume^track^sc); // 4x4enc address prolog checksum
+  writeByteFast((c>>1)|0xaa);
+  writeByteFast(c|0xaa);
   
   writeByteFast(0xde); // address epilog (0xde 0xaa 0xeb)
-	writeByteFast(0xAA);
-	writeByteFast(0xeb);
+  writeByteFast(0xAA);
+  writeByteFast(0xeb);
 
-	// sync header
-	writeByteFast(0xff);
-	writeByteFast(0xff);
-	writeByteFast(0xff);
-	writeByteFast(0xff);
-	writeByteFast(0xff); // ここまでで 53バイト
+  // sync header
+  writeByteFast(0xff);
+  writeByteFast(0xff);
+  writeByteFast(0xff);
+  writeByteFast(0xff);
+  writeByteFast(0xff); // ここまでで 53バイト
 
-	// data
+  // data
   for (i = 0; i < GCR_DATA_AREA_SIZE; i++) { // データエリアを出力 349
     writeByteFast(writeData[bn][i]);
   }
@@ -2252,7 +2252,7 @@ void allDsk2Nic(void)
   locate(0, CENTER_Y, 0);
   consoleFlash("Converting...");
   
-	for (i = 0; i < ROOT_ENTRY_COUNT; i++) {
+  for (i = 0; i < ROOT_ENTRY_COUNT; i++) {
     if (bit_is_set(PIND, 3)) {
       return;
     }
@@ -2280,7 +2280,7 @@ void allDsk2Nic(void)
     }
     
     // ファイル名の拡張子が "DSK" か？
-    for (j = 0; j < DIR_EXT_SIZE;  j++) {
+    for (j = 0; j < DIR_EXT_SIZE; j++) {
       ext[j] = entry[DIR_BODY_SIZE + j];
     }
     
@@ -2694,8 +2694,8 @@ static void writeSector(unsigned long adr, unsigned char *buf)
     return;
   }
   
-	PORTD = 0b10000000; // CS=H
-	PORTD = 0b00000000; // CS=L
+  PORTD = 0b10000000; // CS=H
+  PORTD = 0b00000000; // CS=L
   
   // CMD24 シングルブロック書き込み
   sdError = SDERR_NONE;
@@ -2724,7 +2724,7 @@ static void writeSector(unsigned long adr, unsigned char *buf)
   finishWrite();
   
   PORTD = 0b10000000; // CS=H
-	PORTD = 0b00000000;	// CS=L
+  PORTD = 0b00000000; // CS=L
 }
 
 
