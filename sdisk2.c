@@ -838,7 +838,7 @@ void writeSD(unsigned long adr, unsigned char *data, unsigned short len)
 
 
 /**
- * @brief SDカードのFATを汎用バッファに複製する
+ * @brief SDカードのFATを複製する
 */
 void duplicateFat(void)
 {
