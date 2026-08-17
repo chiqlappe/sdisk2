@@ -1,12 +1,12 @@
-# SDISK II Modified Firmware
+# SDISK II LCD Modified Firmware
 
 ![基板イメージ](https://github.com/chiqlappe/sdisk2/blob/main/image/IMG_3473.JPG)
-Apple II 用 DISK II エミュレータ「SDISK II」の改造版ファームウェアです。
+Apple II 用 DISK II エミュレータ「SDISK II LCD」の改造版ファームウェアです。
 
 このプログラムは、西田ラヂオ Koichi Nishida 氏による
 SDISK II LCD Firmware をベースに改造したものです。
 
-オリジナルの SDISK II については以下を参照してください。
+オリジナルの SDISK II LCD については以下を参照してください。
 
 - 西田ラヂオ SDISK II LCD
   [https://tulip-house.ddo.jp/digital/SDISK2LCD/index.html](https://tulip-house.ddo.jp/digital/SDISK2LCD/index.html)
