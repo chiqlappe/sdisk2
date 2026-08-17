@@ -339,11 +339,9 @@ unsigned long totalSectors;       // BPB+19~20 または BPB+32~35 の総セク�
 unsigned short sectorsPerFat;     // BPB+22~23  FAT 1個あたりのセクタ数
 unsigned char sectorsPerCluster2;
 
-
 // SDカードエラー
 volatile unsigned char sdError;   // エラーコード格納用
 volatile unsigned char sdWriteError; // SD書き込みエラー発生フラグ
-
 
 // DISK II status
 unsigned char ph_track;   // 0~139 物理トラック(1トラックを4分割したクォータートラック)の番号 140=35*4
@@ -369,7 +367,6 @@ const uint8_t stepper_table[8] PROGMEM = {0b00000000, 0b11111111, 0b11111110, 0b
                                           0b00000000, 0b00000011, 0b00000010, 0b00000001};
 
 
-// encode / decode table for a nib image
 // GCR変換テーブル
 const uint8_t encTable[] PROGMEM = {
   0x96,0x97,0x9A,0x9B,0x9D,0x9E,0x9F,0xA6,
@@ -403,17 +400,14 @@ static const unsigned char lfnCharOffset[13] = {
 static void console(const char *str);
 static void console_P(PGM_P str);
 static void consoleDec(unsigned char val);
-//static void consoleHex(unsigned char val);
-//void consoleHex16(unsigned short val);
-//void consoleHex32(unsigned long val);
-void seekSD(unsigned long adr);
-void discard(unsigned short num);
-void readRootEntry(unsigned short entryNo, unsigned char *entry);
+static void seekSD(unsigned long adr);
+static void discard(unsigned short num);
+static void readRootEntry(unsigned short entryNo, unsigned char *entry);
 static unsigned short readLFNChar(const unsigned char *entry, unsigned char index);
-unsigned char getLFN(unsigned short entryNo,char *name,unsigned char nameSize);
+static unsigned char getLFN(unsigned short entryNo,char *name,unsigned char nameSize);
 static void removeExtension(char *name);
-void dispFileName(unsigned short entryNo);
-void allDsk2Nic(void);
+static void dispFileName(unsigned short entryNo);
+static void allDsk2Nic(void);
 static void busy(unsigned char mode);
 static unsigned char lfnChecksum(const unsigned char *sfn);
 static void changeLfnExt(char *lfn);
@@ -2047,7 +2041,7 @@ void consoleHex32(unsigned long val)
  * @param adr アドレス
  * @note ブロックサイズが512に固定されているSDカード対策
  */
-void seekSD(unsigned long adr)
+static void seekSD(unsigned long adr)
 {
   unsigned short i;
   unsigned short adr_l = adr & (DEFAULT_BLOCK_SIZE-1); // adr_l={0~511}
@@ -2065,7 +2059,7 @@ void seekSD(unsigned long adr)
  * @brief CMD17で開始したシングルブロックリードモードを終了させる
  * @param num すでに受信したバイトデータ数
  */
-void discard(unsigned short num)
+static void discard(unsigned short num)
 {
   unsigned short i;
   
@@ -2081,7 +2075,7 @@ void discard(unsigned short num)
  * @param *entry 取り込み先へのポインタ
  */
 __attribute__((noinline, noclone))
-void readRootEntry(unsigned short entryNo, unsigned char *entry)
+static void readRootEntry(unsigned short entryNo, unsigned char *entry)
 {
   unsigned short i;
   
@@ -2119,7 +2113,7 @@ static unsigned short readLFNChar(const unsigned char *entry, unsigned char inde
  * @note 最後に name[nameSize-1] へ '\0' がセットされるため、有効な文字数は nameSize-1 であることに注意
  * @note ファイル名として取得したい文字数に +1 した数をnameのサイズとすること
  */
-unsigned char getLFN(unsigned short entryNo, char *name, unsigned char nameSize)
+static unsigned char getLFN(unsigned short entryNo, char *name, unsigned char nameSize)
 {
   unsigned char entry[DIR_ENTRY_SIZE];
   unsigned char order;
@@ -2224,7 +2218,7 @@ static void removeExtension(char *name)
  * @brief 指定されたルートディレクトリエントリのファイル名をコンソールに改行付きで表示する
  * LFNが無ければSFNを表示する
  */
-void dispFileName(unsigned short entryNo)
+static void dispFileName(unsigned short entryNo)
 {
   char buf[DIR_LFN_SIZE + 1];
   
@@ -2241,7 +2235,7 @@ void dispFileName(unsigned short entryNo)
 /**
  * @brief ルートディレクトリのDSKファイルをすべてNIC形式に変換する
  */
-void allDsk2Nic(void)
+static void allDsk2Nic(void)
 {
   unsigned short i, j;
   unsigned char entry[DIR_ENTRY_SIZE], d;
