@@ -629,7 +629,6 @@ void cmd_(unsigned char cmd, unsigned long adr)
  * @brief SPIコマンドを送信してR1レスポンスを受信する
  * @param cmd SPIコマンド
  * @param adr SPIコマンドの引数
- * @return
  * @retval 0x80 R1レスポンス
  * @retval 0xff タイムアウトした場合
  */
@@ -878,7 +877,7 @@ void writeSD(unsigned long adr, unsigned char *data, unsigned short len)
 
 
 /**
- * @brief SDカードのFATを複製する
+ * @brief SDカードのFAT1をFAT2へ複製する
 */
 void duplicateFat(void)
 {
@@ -1064,8 +1063,6 @@ void dsk2Nic(void)
         PORTD = 0b10000000; // CS=H
         PORTD = 0b00000000; // CS=L
     
-        //sdError = SDERR_NONE; // CMD24実行前にエラー状態を初期化する
-        
         // CMD24 シングルブロック書き込み
         if (cmd24Fast(userAddr + ((((unsigned long)ft - 2UL) << sectorsPerCluster2) + (long_sector & (sectorsPerCluster - 1))) * DEFAULT_BLOCK_SIZE) != 0) {
           /* エラー処理 */
@@ -1334,8 +1331,6 @@ unsigned char init(void)
     return 0;
   }
 
-  //console("a");
-
   /*
    * CMD8
    *
@@ -1367,8 +1362,6 @@ unsigned char init(void)
       return 0;
     }
     
-    //console("b");
-
     sdV2 = 1;
 
   } else if (ch == 0x05) {
@@ -1383,17 +1376,12 @@ unsigned char init(void)
      */
     sdV2 = 0;
     
-    //console("c");
-
   } else {
-    
-    //console("d");
 
     // 想定外のCMD8レスポンス
     PORTD = 0b10000000;
     return 0;
   }
-
 
   /*
    * ACMD41
@@ -1443,9 +1431,6 @@ unsigned char init(void)
     PORTD = 0b10000000;
     return 0;
   }
-
-  
-  //console("e");
   
   /*
    * CMD58
@@ -1490,15 +1475,20 @@ unsigned char init(void)
     sdHighCapacity = 0;
   }
 
-
   /*
    * 初期化完了
    */
   PORTD = 0b10000000; // CS=H
-
-
+  
   /*
-   * ここから従来のFAT16初期化処理
+  // SDSCのみブロックサイズを512バイトに設定
+  if (!sdHighCapacity) {
+    cmdFast(16, DEFAULT_BLOCK_SIZE);
+  }
+  */
+  
+  /*
+   * FAT16初期化処理
    */
 
   // SD初期化が完了したら送受信はウェイトなし
@@ -1509,9 +1499,6 @@ unsigned char init(void)
   }
 
   discard(5);
-
-  // 以下、現在のinit()の残りをそのまま続ける
-  
   
   // BPBアドレスを求める
   if ((str[0] == 'F') && (str[1] == 'A') && (str[2] == 'T') && (str[3] == '1') && (str[4] == '6')) {
@@ -1624,7 +1611,6 @@ void prepareFiles(unsigned char choose)
   // NICファイルを探す
   // プロテクト状態を取得する
   nicEntryNo = findExt("NIC", &protect, filebase, btfExists || choosen);
-  
   
   // NICファイルが見つからなかった時
   if (nicEntryNo == ROOT_ENTRY_COUNT) {
@@ -2006,6 +1992,7 @@ void writeBack(void)
   }
 }
 
+
 /**
  * @brief バッファ上のセクタデータをすべてSDカードに書き出し、バッファ関連変数を初期化する
  */
@@ -2065,7 +2052,6 @@ void writeBackSub2(unsigned char bn, unsigned char sc, unsigned char track)
   PORTD = 0b00000000; // CS=L
   
   ft = fatNic[long_cluster % FAT_NIC_ELEMS];
-  //sdError = SDERR_NONE;
   
   if (cmd24Fast(userAddr + ((((unsigned long)ft - 2UL) << sectorsPerCluster2) + (long_sector & (sectorsPerCluster - 1))) * DEFAULT_BLOCK_SIZE) != 0) {
     /* エラー処理 */
@@ -2147,8 +2133,6 @@ void writeBackSub2(unsigned char bn, unsigned char sc, unsigned char track)
   PORTD = 0b00000000; // CS=L
 }
 
-
-/*** 追加された関数ここから ***/
 
 
 /**
@@ -2258,12 +2242,14 @@ static void seekSD(unsigned long adr)
   // 新しいコマンドを開始
   PORTD = 0b10000000; // CS=H
   PORTD = 0b00000000; // CS=L
-
+  
+  
   // SDSCのみブロックサイズを512バイトに設定
   if (!sdHighCapacity) {
     cmdFast(16, DEFAULT_BLOCK_SIZE);
   }
-
+  
+  
   // cmd17Fast()内部でSDHCならblock addressへ変換する
   cmd17Fast(adr_h);
 
