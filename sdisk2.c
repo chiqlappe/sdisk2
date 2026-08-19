@@ -68,9 +68,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 /*------------------------------------
 
-    Modified version
+    Modified version 1.0.1
 
-    2026 by Kenichi Iwata
+    2026.08.19 by Kenichi Iwata
 
     Based on SDISK II LCD Firmware
     by Koichi Nishida.
@@ -246,6 +246,8 @@ SPDX-License-Identifier: GPL-3.0-only
 #define SDERR_DATA     2
 #define SDERR_BUSY     3
 #define SDERR_EJECT    4
+#define SDERR_NIC      5
+#define SDERR_INIT     6
 
 // ロングファイルネーム関連
 #define ATTR_LFN 0x0f
@@ -302,7 +304,7 @@ unsigned short makeFileNameList(unsigned short *list, char *targExt);
 // choose a NIC file from a NIC file name list
 unsigned char chooseANicFile(void *tempBuff, unsigned char btfExists, char *filebase);
 // initialization called from check_eject
-void init(void);
+unsigned char init(void);
 //
 void prepareFiles(unsigned char choose);
 // called when the SD card is inserted or removed
@@ -321,7 +323,9 @@ void writeBackSub2(unsigned char bn, unsigned char sc, unsigned char track);
 void wait5(unsigned short time);
 
 
-// SD card information
+// SDカード情報
+unsigned char sdHighCapacity;  // 0:SDSC(byte addressing), 1:SDHC/SDXC(block addressing)
+
 unsigned long bpbAddr, rootAddr;
 unsigned long fatAddr;            // the beginning of FAT
 unsigned short fileFatTop;
@@ -418,13 +422,17 @@ static unsigned short getMaxCluster(
   unsigned short sectorsPerFat,
   unsigned char sectorsPerCluster);
 
+static unsigned char cmd24Fast(unsigned long adr);
 static void writeSector(unsigned long adr, unsigned char *buf);
 static unsigned char isTargetFile(unsigned char *entry, const char *ext);
 static void finishWrite(void);
-static void informCardError(const char *mes);
+static void informCardError(const unsigned char err);
 static void locate(const uint8_t x, const uint8_t y, const uint8_t inv);
 static void cls(void);
 
+//static void consoleHex(unsigned char val);
+//static void consoleHex16(unsigned short val);
+//static void consoleHex32(unsigned long val);
 
 /**
  * @brief キャラクタコードをUARTで送信する
@@ -590,22 +598,31 @@ unsigned char waitFinish(void)
 
 
 /**
- * @brief SPIコマンドを低速送信する(レスポンスは無視)
+ * @brief SDカードの初期化処理で必要なSPIコマンドを低速送信する
  * @param cmd SPIコマンド
  * @param adr SPIコマンドの引数
- * @note コマンドフレームは6バイト固定長
+ * @note CMD0とCMD8には専用のCRC値を送信する
+ *  R1レスポンス受信は関数の外で行う
  */
 void cmd_(unsigned char cmd, unsigned long adr)
 {
-  writeByteSlow(0xff);                // ポーリング用データ
+  unsigned char crc;
+  
+  // CMD8:0x87、CMD0およびその他:0x95
+  // SPIモード移行後はCRCチェックされないため、
+  // CMD0以外では0x95のままで問題ない
+  crc = (cmd == 8) ? 0x87 : 0x95;
+  
+  writeByteSlow(0xff);                // コマンド前のダミークロック
   writeByteSlow(0x40 + cmd);          // Index部 bit7,6は0,1であること
   writeByteSlow(adr >> 24);           // Argument1
   writeByteSlow((adr >> 16) & 0xff);  // Argument2
   writeByteSlow((adr >> 8) & 0xff);   // Argument3
   writeByteSlow(adr & 0xff);          // Argument4
+  writeByteSlow(crc); // CRC値はSPIモードに移行したら無視される。ただし省略はできない
   
-  writeByteSlow(0x95); // 0x95はCMD0のCRC値。CMD0には有効なCRC値が必要だが、SPIモードに移行したら無視される。ただし省略はできない
-  writeByteSlow(0xff); // 送信するとレスポンスが送られてくるが無視している
+  // ここで0xffを送信してレスポンスを読み捨てない
+  // R1はgetRespSlow()で取得する
 }
 
 /**
@@ -663,17 +680,40 @@ unsigned char getRespSlow(void)
 
 /**
  * @brief CMD17を送信してデータトークンを待つ
- * @param adr アドレス
+ * @param adr バイトアドレス
+ * @note SDHC/SDXCでは512バイト単位のブロックアドレスへ変換する
  */
 void cmd17Fast(unsigned long adr)
 {
   unsigned char ch;
 
+  if (sdHighCapacity) {
+    adr >>= 9; // byte address / 512 -> block address
+  }
+
   cmdFast(17, adr);
+
   do {
     ch = readByteFast();
-  } while (ch != 0xfe); // CMD17のデータトークン(0xfe)が返るまで待つ
+  } while (ch != 0xfe);
 }
+
+
+/**
+ * @brief CMD24を送信してシングルブロック書き込みを開始する
+ * @param adr バイトアドレス
+ * @return CMD24のR1レスポンス
+ * @note SDHC/SDXCでは512バイト単位のブロックアドレスへ変換する
+ */
+static unsigned char cmd24Fast(unsigned long adr)
+{
+  if (sdHighCapacity) {
+    adr >>= 9; // byte address / 512 -> block address
+  }
+
+  return cmdFast(24, adr);
+}
+
 
 
 /**
@@ -1024,10 +1064,10 @@ void dsk2Nic(void)
         PORTD = 0b10000000; // CS=H
         PORTD = 0b00000000; // CS=L
     
-        sdError = SDERR_NONE; // CMD24実行前にエラー状態を初期化する
+        //sdError = SDERR_NONE; // CMD24実行前にエラー状態を初期化する
         
         // CMD24 シングルブロック書き込み
-        if (cmdFast(24, userAddr + ((((unsigned long)ft - 2UL) << sectorsPerCluster2) + (long_sector & (sectorsPerCluster - 1))) * DEFAULT_BLOCK_SIZE) != 0) {
+        if (cmd24Fast(userAddr + ((((unsigned long)ft - 2UL) << sectorsPerCluster2) + (long_sector & (sectorsPerCluster - 1))) * DEFAULT_BLOCK_SIZE) != 0) {
           /* エラー処理 */
           sdError = SDERR_CMD24;
           sdWriteError = 1;
@@ -1251,81 +1291,227 @@ unsigned char chooseANicFile(void *tempBuff, unsigned char btfExists, char *file
  * @brief SDカードをSPIモードに初期化してFAT16関連パラメータを取得する
  * @note check_ejectから呼ばれる
  */
-void init(void)
+unsigned char init(void)
 {
   unsigned char ch;
   unsigned char i;
+  unsigned char sdV2;
+  unsigned char r7_2, r7_3;
+  unsigned char ocr0;
+  unsigned short retry;
   char str[5];
-  
+
   protect = 0;
   mounted = 0;
-  
-  // SDカードをSPIモードに初期化する
-  // DI,CSをHレベルにしてSCLKを74クロック以上入れるとコマンドを受け付ける準備ができる
+  sdHighCapacity = 0;
+
+  /*
+   * SDカードをSPIモードに初期化する
+   * DI,CSをHにして74クロック以上送信
+   */
   PORTD = 0b10000000; // CS=H
-  
-  for (i = 0; i != 200; i++) { // 200クロック送信
+
+  for (i = 0; i != 200; i++) {
     PORTD = 0b10110000; // CS=H, DI=H, CLK=H
     wait5(WAIT);
+
     PORTD = 0b10010000; // CS=H, DI=H, CLK=L
     wait5(WAIT);
-   }
-  
-  // CSをLにしてCMD0でソフトウェアリセットをかけるとSPIモードに入る
-  PORTD = 0b000000000; // CS=L
-  cmd_(0, 0); // CMD0を受信したときカードはCS信号をサンプルし、Lowレベルの場合はSPIモードに入る
-  
-  do {
-    if (bit_is_set(PIND, 3)) {
-      return;
-    }
-    
-    ch = readByteSlow(); // ch=R1レスポンス
-    
-  } while (ch != 0x01); // R1レスポンスの"In Idle State"(bit0)が立つまで待つ
-  
-  PORTD = 0b10000000; // CS=H
-  
-  // ACMD41(CMD55,CMD41)によるSD初期化を実行
-  while (1) {
-    if (bit_is_set(PIND, 3)) {
-      return;
-    }
-    
-    PORTD = 0b00000000; // CS=L
-    cmd_(55, 0);
-    ch = getRespSlow(); // ch=R1レスポンス
-
-    if (ch == 0xff) {
-      return; // R1レスポンスが 0xff なら初期化を中止する
-    }
-    
-    if (ch & 0xfe) {
-      continue; // R1レスポンスの"In Idle State"(bit0)以外が0になるまで待つ
-    }
-    
-    PORTD = 0b10000000; // CS=H
-    PORTD = 0b00000000; // CS=L
-    
-    cmd_(41, 0);
-    
-    if (!(ch = getRespSlow())) {
-      break; // R1レスポンスが0になったらbreakする
-    }
-    
-    if (ch == 0xff) {
-      return; // R1レスポンスが 0xff なら初期化を中止する
-    }
-    PORTD = 0b10000000; // CS=H
   }
+
+
+  /*
+   * CMD0
+   * SPIモードへ移行
+   */
+  PORTD = 0b00000000; // CS=L
+
+  cmd_(0, 0);
+  ch = getRespSlow();
+
+  if (ch != 0x01) {
+    PORTD = 0b10000000;
+    return 0;
+  }
+
+  //console("a");
+
+  /*
+   * CMD8
+   *
+   * VHS           = 0x01
+   * Check Pattern = 0xaa
+   */
+  cmd_(8, 0x000001aaUL);
+  ch = getRespSlow();
+
+  if (ch == 0x01) {
+
+    /*
+     * SD Version 2以降
+     *
+     * R7:
+     *   [31:24]
+     *   [23:16]
+     *   [15:8]  VHS
+     *   [7:0]   Check Pattern
+     */
+
+    readByteSlow();        // R7[31:24]
+    readByteSlow();        // R7[23:16]
+    r7_2 = readByteSlow(); // R7[15:8]
+    r7_3 = readByteSlow(); // R7[7:0]
+
+    if ((r7_2 != 0x01) || (r7_3 != 0xaa)) {
+      PORTD = 0b10000000;
+      return 0;
+    }
+    
+    //console("b");
+
+    sdV2 = 1;
+
+  } else if (ch == 0x05) {
+
+    /*
+     * 旧SDカード
+     *
+     * 0x05 =
+     * In Idle State + Illegal Command
+     *
+     * CMD8未対応
+     */
+    sdV2 = 0;
+    
+    //console("c");
+
+  } else {
+    
+    //console("d");
+
+    // 想定外のCMD8レスポンス
+    PORTD = 0b10000000;
+    return 0;
+  }
+
+
+  /*
+   * ACMD41
+   *
+   * SD v2 : HCS=1
+   * SD v1 : HCS=0
+   */
+  retry = 0xffff;
+
+  while (retry--) {
+
+    if (bit_is_set(PIND, 3)) {
+      PORTD = 0b10000000;
+      return 0;
+    }
+
+    // CMD55
+    cmd_(55, 0);
+    ch = getRespSlow();
+
+    if ((ch != 0x01) && (ch != 0x00)) {
+      PORTD = 0b10000000;
+      return 0;
+    }
+
+    // ACMD41
+    if (sdV2) {
+      cmd_(41, 0x40000000UL); // HCS=1
+    } else {
+      cmd_(41, 0);            // 旧SDSC
+    }
+
+    ch = getRespSlow();
+
+    if (ch == 0x00) {
+      break;
+    }
+
+    if (ch != 0x01) {
+      PORTD = 0b10000000;
+      return 0;
+    }
+  }
+
+  // ACMD41タイムアウト
+  if (ch != 0x00) {
+    PORTD = 0b10000000;
+    return 0;
+  }
+
   
+  //console("e");
+  
+  /*
+   * CMD58
+   *
+   * SD Version 2の場合はOCRを読み、
+   * CCSからアドレス方式を判定する
+   */
+  if (sdV2) {
+
+    cmd_(58, 0);
+    ch = getRespSlow();
+
+    if (ch != 0x00) {
+      PORTD = 0b10000000;
+      return 0;
+    }
+
+    // OCR[31:24]
+    ocr0 = readByteSlow();
+
+    // OCR[23:0]
+    readByteSlow();
+    readByteSlow();
+    readByteSlow();
+
+    // bit31: Power Up Status
+    if (!(ocr0 & 0x80)) {
+      PORTD = 0b10000000;
+      return 0;
+    }
+
+    // bit30: CCS
+    if (ocr0 & 0x40) {
+      sdHighCapacity = 1;
+    } else {
+      sdHighCapacity = 0;
+    }
+
+  } else {
+
+    // 旧SDカードはbyte addressing
+    sdHighCapacity = 0;
+  }
+
+
+  /*
+   * 初期化完了
+   */
+  PORTD = 0b10000000; // CS=H
+
+
+  /*
+   * ここから従来のFAT16初期化処理
+   */
+
   // SD初期化が完了したら送受信はウェイトなし
-  
-  seekSD(54); // ファイルシステムタイプ文字列(BS_FilSysType)
+  seekSD(54);
+
   for (i = 0; i < 5; i++) {
     str[i] = readByteFast();
   }
+
   discard(5);
+
+  // 以下、現在のinit()の残りをそのまま続ける
+  
   
   // BPBアドレスを求める
   if ((str[0] == 'F') && (str[1] == 'A') && (str[2] == 'T') && (str[3] == '1') && (str[4] == '6')) {
@@ -1341,7 +1527,7 @@ void init(void)
   }
   
   if (bit_is_set(PIND, 3)) {
-    return;
+    return 0;
   }
   
   // BPBのパラメータとFAT開始アドレスを求める
@@ -1401,6 +1587,8 @@ void init(void)
     // FAT探索用
     maxCluster = getMaxCluster(totalSectors, reservedSectors, sectorsPerFat, sectorsPerCluster);
   }
+  
+  return 1;
 }
 
 
@@ -1437,6 +1625,7 @@ void prepareFiles(unsigned char choose)
   // プロテクト状態を取得する
   nicEntryNo = findExt("NIC", &protect, filebase, btfExists || choosen);
   
+  
   // NICファイルが見つからなかった時
   if (nicEntryNo == ROOT_ENTRY_COUNT) {
     locate(0, CENTER_Y, 0);
@@ -1449,16 +1638,38 @@ void prepareFiles(unsigned char choose)
     return;
   }
   
+  
+  /*
+   * BTFの作成・更新
+   *
+   * SDSC/SDHCともにバイトアドレスで位置を計算し、
+   * writeSector() -> cmd24Fast() でSDHCのブロックアドレスへ変換する。
+   */
+
   // BTFファイルが無ければ作成する
   if (!btfExists) {
     createFile(filebase, "BTF", NULL, 0);
+
+    // 書き込みエラーが発生した場合は以降の処理を行わない
+    if (sdWriteError) {
+      return;
+    }
+
     btfEntryNo = findExt("BTF", 0, filebase, 1);
     btfExists = (btfEntryNo != ROOT_ENTRY_COUNT);
-  }
-  
-  // BTFファイルのファイル名本体部分を書き換える
-  if (btfExists && (choosen || (memcmp(filebase, btfbase, DIR_BODY_SIZE) != 0))) {
-    writeSD(rootAddr + btfEntryNo * DIR_ENTRY_SIZE, (unsigned char *)filebase, DIR_BODY_SIZE); // 既存のBTFファイルエントリのファイル名本体部分だけを変更する
+
+  // 既存BTFと選択されたNICファイル名が異なる場合だけ更新する
+  } else if (choosen ||
+             (memcmp(filebase, btfbase, DIR_BODY_SIZE) != 0)) {
+
+    writeSD(
+      rootAddr + btfEntryNo * DIR_ENTRY_SIZE,
+      (unsigned char *)filebase,
+      DIR_BODY_SIZE);
+
+    if (sdWriteError) {
+      return;
+    }
   }
 
   // マウントされたNICファイル名を表示
@@ -1513,7 +1724,7 @@ void check_eject(void)
       mounted = 0;
       prepare = 0;
       
-      // 以前の書き込みエラー状態を解除する
+      // 以前のエラー状態を解除する
       sdWriteError = 0;
       sdError = SDERR_NONE;
     }
@@ -1536,14 +1747,24 @@ void check_eject(void)
         cli(); // 割り込み禁止
         
         busy(1);
-        init(); // SDカード設定
-        prepareFiles(1); // NICファイルをユーザーに選択させる
+        if (init()) { // SDカード設定
+          prepareFiles(1); // NICファイルをユーザーに選択させる
+        } else {
+          sdError = SDERR_INIT;
+        }
         busy(0);
         
-        if (mounted) { // NICファイルがマウントされている場合
-          TIMSK0 |= (1 << TOIE0); // タイマー0 オーバーフロー割り込み許可
-          EIMSK  |= (1 << INT0); // 外部割り込み0の許可 (PD2:WRITE REQUEST)
+        
+        if (mounted) {
+        
+          // 読み出し用タイマーは有効
+          TIMSK0 |= (1 << TOIE0);
+        
+          // Apple IIからの書き込み要求を許可
+          // SDHCのアドレス変換はcmd24Fast()で行う
+          EIMSK |= (1 << INT0);
         }
+        
         sei(); // 割り込み許可
       }
     } else if (bit_is_clear(PINC, 4) && bit_is_clear(PINC, 5)) { // UPとDOWNボタンが同時に押された
@@ -1556,8 +1777,13 @@ void check_eject(void)
       cli(); // 割込み禁止
       
       busy(1);
-      init();
-      allDsk2Nic(); // すべてのDSKファイルからNICファイルを作成する
+      if (init()) {
+        // SDSC/SDHCのどちらでもDSK -> NIC変換を実行する
+        // SDHCのCMD24アドレス変換はcmd24Fast()で行う
+        allDsk2Nic();
+      } else {
+        sdError = SDERR_INIT;
+      }
       busy(0);
       
       sei(); // 割り込み許可
@@ -1571,14 +1797,24 @@ void check_eject(void)
       cli(); // 割込み禁止
       
       busy(1);
-      init(); // SDカード設定
-      prepareFiles(0); // BTFファイルが無ければ作成する
+      if (init()) {
+        prepareFiles(0); // BTFファイルが無ければ作成する
+      } else {
+        sdError = SDERR_INIT;
+      }
       busy(0);
       
+      
       if (mounted) {
-        TIMSK0 |= (1 << TOIE0); // タイマー0 オーバーフロー割り込み許可
-        EIMSK  |= (1 << INT0); // 外部割り込み0の許可 (PD2:WRITE REQUEST)
+      
+        // 読み出し用タイマーは有効
+        TIMSK0 |= (1 << TOIE0);
+      
+        // Apple IIからの書き込み要求を許可
+        // SDHCのアドレス変換はcmd24Fast()で行う
+        EIMSK |= (1 << INT0);
       }
+      
       sei(); // 割り込み許可
     }
   }
@@ -1640,9 +1876,9 @@ int main(void)
   while (1) {
     check_eject(); // SDカードの取り出しをチェックする
     
-    // SD書き込みエラー処理
-    if (sdWriteError) {
-      informCardError("** CARD ERROR **"); // SDカードが取り出されるまで待つ
+    // SDエラー処理
+    if (sdError) {
+      informCardError(sdError); // SDカードが取り出されるまで待つ
       continue; // whileループの先頭へ戻し check_eject() を実行させる
     }
     
@@ -1829,9 +2065,9 @@ void writeBackSub2(unsigned char bn, unsigned char sc, unsigned char track)
   PORTD = 0b00000000; // CS=L
   
   ft = fatNic[long_cluster % FAT_NIC_ELEMS];
-  sdError = SDERR_NONE;
+  //sdError = SDERR_NONE;
   
-  if (cmdFast(24, userAddr + ((((unsigned long)ft - 2UL) << sectorsPerCluster2) + (long_sector & (sectorsPerCluster - 1))) * DEFAULT_BLOCK_SIZE) != 0) {
+  if (cmd24Fast(userAddr + ((((unsigned long)ft - 2UL) << sectorsPerCluster2) + (long_sector & (sectorsPerCluster - 1))) * DEFAULT_BLOCK_SIZE) != 0) {
     /* エラー処理 */
     sdError = SDERR_CMD24;
     sdWriteError = 1;
@@ -2008,49 +2244,32 @@ static void consoleDec(unsigned char val)
   outCharUsart(dec[val % 10]);
 }
 
-/*
-static void consoleHex(unsigned char val)
-{
-  static const char hex[] = "0123456789ABCDEF";
-  outCharUsart(hex[(val >> 4) & 0x0F]);
-  outCharUsart(hex[val & 0x0F]);
-  
-}
-
-
-void consoleHex16(unsigned short val)
-{
-  
-  consoleHex((unsigned char)(val >> 8));
-  consoleHex((unsigned char)val);
-  
-}
-
-
-void consoleHex32(unsigned long val)
-{
-  
-  consoleHex16((unsigned short)(val >> 16));
-  consoleHex16((unsigned short)val);
-  
-}
-*/
 
 /**
  * @brief SDカードのアドレスを指定位置まで進める
- * @param adr アドレス
- * @note ブロックサイズが512に固定されているSDカード対策
+ * @param adr バイトアドレス
  */
 static void seekSD(unsigned long adr)
 {
   unsigned short i;
-  unsigned short adr_l = adr & (DEFAULT_BLOCK_SIZE-1); // adr_l={0~511}
-  unsigned long  adr_h = adr - adr_l; // adr_h=512の倍数
-  
-  cmdFast(16, DEFAULT_BLOCK_SIZE);
+  unsigned short adr_l = adr & (DEFAULT_BLOCK_SIZE - 1);
+  unsigned long adr_h = adr - adr_l;
+
+  // 新しいコマンドを開始
+  PORTD = 0b10000000; // CS=H
+  PORTD = 0b00000000; // CS=L
+
+  // SDSCのみブロックサイズを512バイトに設定
+  if (!sdHighCapacity) {
+    cmdFast(16, DEFAULT_BLOCK_SIZE);
+  }
+
+  // cmd17Fast()内部でSDHCならblock addressへ変換する
   cmd17Fast(adr_h);
+
+  // 512バイト境界から目的位置まで読み進める
   for (i = 0; i < adr_l; i++) {
-    readByteFast(); // アドレスが512の倍数ではない場合(adr_l>0)は、端数(512未満の値)だけアドレスを進める
+    readByteFast();
   }
 }
 
@@ -2107,7 +2326,6 @@ static unsigned short readLFNChar(const unsigned char *entry, unsigned char inde
  * @param entryNo
  * @param *name
  * @param nameSize
- * @return
  * @retval 0 LFNなし または LFNの文字数が nameSize-1 を超過した
  * @retval 1 LFN取得成功
  * @note 最後に name[nameSize-1] へ '\0' がセットされるため、有効な文字数は nameSize-1 であることに注意
@@ -2293,28 +2511,37 @@ static void allDsk2Nic(void)
     
     // NICファイルが存在しないDSKファイルを見つけた
     
-    // DSKファイルのディレクトリエントリ番号を求める
-    dskEntryNo = findExt("DSK", 0, name, 1);
+    dskEntryNo = findExt("DSK", 0, name, 1); // DSKファイルのディレクトリエントリ番号を求める
     
     if (dskEntryNo == ROOT_ENTRY_COUNT) {
-      consoleFlash("err 1");
+      sdError = SDERR_NIC; // 取得に失敗した場合
       return;
     }
     
-    // NICファイルを作成
-    if (getLFN(dskEntryNo, lfn, sizeof(lfn))) { // DSKファイルのLFNをlfnに取得する。LFNがない場合、またはLFNの長さがDIR_LFN_SIZEを超過した場合は lfn=0
-      changeLfnExt(lfn); // 拡張子を"NIC"に変更する
+    if (!getLFN(dskEntryNo, lfn, sizeof(lfn))) { // DSKファイルのLFNをlfnに取得する。LFNがない場合、またはLFNの長さがDIR_LFN_SIZEを超過した場合は lfn=0
+      sdError = SDERR_NIC; // 取得に失敗した場合
+      return;
     }
+    
+    changeLfnExt(lfn); // 拡張子を"NIC"に変更する
     
     if (!createFile(name, "NIC", lfn, 560)) {
-      consoleFlash("err 2"); // 作成に失敗した場合
+      // SD書き込みエラーが既に設定されている場合は、そのエラーコードを保持する
+      if (sdError == SDERR_NONE) {
+        sdError = SDERR_NIC;
+      }
       return;
     }
     
-    nicEntryNo = findExt("NIC", 0, name, 1);
+    // createFile()内のSD書き込みでエラーが発生した場合は後続処理を行わない
+    if (sdWriteError) {
+      return;
+    }
+    
+    nicEntryNo = findExt("NIC", 0, name, 1); // NICファイルのディレクトリエントリ番号を求める
     
     if (nicEntryNo == ROOT_ENTRY_COUNT) {
-      consoleFlash("err 3"); // 作成したNICファイルのディレクトリエントリ番号が取得できなかった場合
+      sdError = SDERR_NIC; // NICファイルのディレクトリエントリ番号が取得できなかった場合
       return;
     }
     
@@ -2322,6 +2549,11 @@ static void allDsk2Nic(void)
     dispFileName(dskEntryNo); // 変換中のファイル名を表示
     
     dsk2Nic(); // 変換処理
+    
+    // 変換中にSD書き込みエラーが発生した場合は次のファイルへ進まない
+    if (sdWriteError || (sdError != SDERR_NONE)) {
+      return;
+    }
     
     locate(0, CENTER_Y, 0);
     consoleFlash("Next...");
@@ -2505,6 +2737,12 @@ int createFile(char *name, char *ext, char *lfn, unsigned short sectNum)
 
     // FAT1の変更をFAT2へ複製する
     duplicateFat();
+
+    // FAT更新中に書き込みエラーが発生した場合は
+    // ディレクトリエントリを公開せずに失敗として戻る
+    if (sdWriteError) {
+      return 0;
+    }
   }
 
   /*
@@ -2576,12 +2814,20 @@ int createFile(char *name, char *ext, char *lfn, unsigned short sectNum)
     }
 
     writeSD(rootAddr + (unsigned long)(entryNum + entryIndex) * DIR_ENTRY_SIZE, lfnEntry, DIR_ENTRY_SIZE);
+
+    if (sdWriteError) {
+      return 0;
+    }
   }
 
   // LFNの直後にSFNを書き込む
   entryNum += lfnCount;
 
   writeSD(rootAddr + (unsigned long)entryNum * DIR_ENTRY_SIZE, dirEntry, DIR_ENTRY_SIZE);
+
+  if (sdWriteError) {
+    return 0;
+  }
 
   return 1;
 }
@@ -2692,8 +2938,8 @@ static void writeSector(unsigned long adr, unsigned char *buf)
   PORTD = 0b00000000; // CS=L
   
   // CMD24 シングルブロック書き込み
-  sdError = SDERR_NONE;
-  if (cmdFast(24, adr) != 0) {
+  //sdError = SDERR_NONE;
+  if (cmd24Fast(adr) != 0) {
     /* エラー処理 */
     sdError = SDERR_CMD24;
     sdWriteError = 1;
@@ -2787,15 +3033,31 @@ static void finishWrite(void)
  * @brief エラーメッセージを表示してSDカードが取り出されるまで待つ
  * @param *mes
  */
-static void informCardError(const char *mes ) {
+static void informCardError(const unsigned char err) {
   
   EIMSK &= ~(1 << INT0); // Apple IIからの書き込み要求を禁止
 
   if (bit_is_clear(PIND, 3)) {
     cls();
     locate(0, CENTER_Y, 0);
-    console(mes);
-
+    
+    if (err == SDERR_CMD24) {
+      consoleFlash("*CMD24 ERR*");
+    } else if (err == SDERR_DATA) {
+      consoleFlash("*DATA ERR*");
+    } else if (err == SDERR_BUSY) {
+      consoleFlash("*BUSY ERR*");
+    } else if (err == SDERR_EJECT) {
+      consoleFlash("*EJECT ERR*");
+    } else if (err == SDERR_INIT) {
+      consoleFlash("*CARD ERR*");
+    } else {
+      consoleFlash("*UNKNOWN ERR*");
+    }
+    
+    PORTB |= (1 << PB4); // 赤LED点灯
+    PORTD &= ~(1 << PB6); // 黄LED消灯
+    
     while (bit_is_clear(PIND, 3)) { // SDカードが抜かれるまで待つ
       PORTB ^= (1 << PB4); // 赤LED点滅
       PORTD ^= (1 << PB6); // 黄LED点滅
@@ -2808,3 +3070,30 @@ static void informCardError(const char *mes ) {
 }
 
 
+/*
+static void consoleHex(unsigned char val)
+{
+  static const char hex[] = "0123456789ABCDEF";
+  outCharUsart(hex[(val >> 4) & 0x0F]);
+  outCharUsart(hex[val & 0x0F]);
+  
+}
+
+
+static void consoleHex16(unsigned short val)
+{
+  
+  consoleHex((unsigned char)(val >> 8));
+  consoleHex((unsigned char)val);
+  
+}
+
+
+static void consoleHex32(unsigned long val)
+{
+  
+  consoleHex16((unsigned short)(val >> 16));
+  consoleHex16((unsigned short)val);
+  
+}
+*/
