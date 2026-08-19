@@ -68,7 +68,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 /*------------------------------------
 
-    Modified version 1.0.1
+    Modified version 1.1.0
 
     2026.08.19 by Kenichi Iwata
 
